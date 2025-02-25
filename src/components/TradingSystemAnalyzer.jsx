@@ -661,17 +661,17 @@ const TradingSystemAnalyzer = () => {
                           {formatCurrency(results.propFirmStats.breachDay.dailyPnL)} ({results.propFirmStats.breachDay.dailyPnLPercent.toFixed(2)}%)
                         </span>
                       </div>
-                      <div className="text-sm mt-2 mb-1">Trades on breach day:</div>
-                      <div className="bg-gray-100 p-2 rounded text-sm max-h-32 overflow-y-auto">
-                        {results.propFirmStats.breachDay.trades.map((trade, i) => (
-                          <div key={i} className="flex justify-between mb-1">
-                            <span>Trade #{trade.tradeNumber}:</span>
-                            <span className={trade.isWin ? 'text-green-600' : 'text-red-600'}>
-                              {formatCurrency(trade.amount)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                      <div className="text-gray-400 mt-2 mb-1 text-sm">Trades on breach day:</div>
+                        <div className="bg-gray-800 p-2 rounded text-sm max-h-32 overflow-y-auto">
+                          {results.propFirmStats.breachDay.trades.map((trade, i) => (
+                            <div key={i} className="flex justify-between mb-1 text-gray-300">
+                              <span>Trade #{trade.tradeNumber}:</span>
+                              <span className={trade.isWin ? 'text-green-400' : 'text-red-400'}>
+                                {formatCurrency(trade.amount)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       <div className="mt-2 text-xs text-gray-500">
                         Cumulative drawdown reached {results.propFirmStats.breachDay.cumulativeDrawdown.toFixed(2)}%, 
                         exceeding the {results.propFirmStats.maxDrawdownLimit}% limit
