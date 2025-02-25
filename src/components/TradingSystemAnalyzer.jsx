@@ -454,7 +454,7 @@ const TradingSystemAnalyzer = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">
-                Max Daily Loss Allowed (%)
+                Max Daily Loss Allowed (%) (set to 100% if no daily drawdown limit)
               </label>
               <input
                 type="number"
