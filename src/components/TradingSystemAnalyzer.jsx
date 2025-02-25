@@ -569,7 +569,7 @@ const TradingSystemAnalyzer = () => {
               <div className="flex justify-between">
                 <span className="text-gray-400">System Expectancy:</span>
                 <span className={`font-medium ${results.expectancy >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {results.expectancy.toFixed(2)}R
+                  {results.expectancy.toFixed(2)}$
                 </span>
               </div>
               <div className="flex justify-between">
