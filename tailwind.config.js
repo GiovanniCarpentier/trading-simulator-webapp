@@ -1,28 +1,18 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    './src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}',
+    './src/**/*.{astro,html,js,jsx,ts,tsx}',
   ],
   theme: {
     extend: {
-      backgroundColor: {
+      colors: {
         dark: {
-          primary: '#1a1a1a',
-          secondary: '#2a2a2a',
-          tertiary: '#3a3a3a',
-        }
-      },
-      textColor: {
-        dark: {
-          primary: '#ffffff',
-          accent: '#00ffe3',
-          muted: '#a0a0a0',
-        }
-      },
-      borderColor: {
-        dark: {
-          primary: '#00ffe3',
-          secondary: '#666666',
+          background: '#1a1a1a',
+          input: '#2a2a2a',
+          border: '#444',
+          text: '#ffffff',
+          muted: '#888888',
+          primary: '#4a6cf7', // Button and accent color
         }
       }
     },

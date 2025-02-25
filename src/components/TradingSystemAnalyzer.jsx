@@ -344,14 +344,14 @@ const TradingSystemAnalyzer = () => {
   };
   
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 bg-gray-50 rounded-lg shadow">
-      <h1 className="text-2xl font-bold text-center mb-6">Trading System Analyzer (Non-Compounding)</h1>
+    <div className="w-full max-w-4xl mx-auto p-4 bg-[#1a1a1a] rounded-lg shadow">
+      <h1 className="text-2xl font-bold text-center mb-6 text-white">Trading System Analyzer (Non-Compounding)</h1>
       
-      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4">Trading Parameters</h2>
+      <div className="mb-6 bg-[#2a2a2a] p-4 rounded-lg shadow-sm">
+        <h2 className="text-xl font-semibold mb-4 text-[#00ffe3]">Trading Parameters</h2>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-400 mb-1">
               Average Win ($)
             </label>
             <input
@@ -361,11 +361,11 @@ const TradingSystemAnalyzer = () => {
               onChange={handleInputChange}
               min="1"
               step="1"
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-400 mb-1">
               Average Loss ($)
             </label>
             <input
@@ -375,11 +375,11 @@ const TradingSystemAnalyzer = () => {
               onChange={handleInputChange}
               min="1"
               step="1"
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-400 mb-1">
               Win Rate (%)
             </label>
             <input
@@ -389,11 +389,11 @@ const TradingSystemAnalyzer = () => {
               onChange={handleInputChange}
               min="1"
               max="99"
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-400 mb-1">
               Account Size ($)
             </label>
             <input
@@ -402,11 +402,11 @@ const TradingSystemAnalyzer = () => {
               value={inputs.accountSize}
               onChange={handleInputChange}
               min="100"
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
             />
           </div>
           <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-400 mb-1">
             Number of Trades
           </label>
           <input
@@ -416,7 +416,7 @@ const TradingSystemAnalyzer = () => {
             onChange={handleInputChange}
             min="1"
             max="10000"
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
           />
         </div>
         <div className="md:col-span-2">
@@ -429,7 +429,7 @@ const TradingSystemAnalyzer = () => {
               onChange={handleInputChange}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label htmlFor="propFirmCheckbox" className="ml-2 block text-sm font-medium text-gray-700">
+            <label htmlFor="propFirmCheckbox" className="ml-2 block text-sm font-medium text-gray-400">
               Enable Prop Firm Rules
             </label>
           </div>
@@ -438,7 +438,7 @@ const TradingSystemAnalyzer = () => {
         {inputs.isPropFirm && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-400 mb-1">
                 Max Drawdown Allowed (%)
               </label>
               <input
@@ -449,11 +449,11 @@ const TradingSystemAnalyzer = () => {
                 min="0.1"
                 max="100"
                 step="0.1"
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-400 mb-1">
                 Max Daily Loss Allowed (%)
               </label>
               <input
@@ -464,11 +464,11 @@ const TradingSystemAnalyzer = () => {
                 min="0.1"
                 max="100"
                 step="0.1"
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-400 mb-1">
                 Trades Per Day
               </label>
               <input
@@ -478,11 +478,11 @@ const TradingSystemAnalyzer = () => {
                 onChange={handleInputChange}
                 min="1"
                 max="100"
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-400 mb-1">
                 Show Breach Details
               </label>
               <div className="flex items-center">
@@ -505,87 +505,87 @@ const TradingSystemAnalyzer = () => {
       <button
         onClick={runSimulation}
         disabled={isLoading}
-        className={`mt-4 ${isLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-4 py-2 rounded transition-colors w-full md:w-auto`}
+        className={`mt-4 ${isLoading ? 'bg-gray-600' : 'bg-[#4a6cf7] hover:bg-opacity-90'} text-white px-4 py-2 rounded transition-colors w-full md:w-auto`}
       >
         {isLoading ? 'Running Simulation...' : 'Run Simulation'}
       </button>
     </div>
     
     {results && (
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4">
+      <div className="bg-[#2a2a2a] p-4 rounded-lg shadow-sm">
+        <h2 className="text-xl font-semibold mb-4 text-[#00ffe3]">
           Simulation Results
-          {results.isPropFirm && <span className="ml-2 text-sm font-normal text-blue-600">(Prop Firm Rules Applied)</span>}
+          {results.isPropFirm && <span className="ml-2 text-sm font-normal text-[#4a6cf7]">(Prop Firm Rules Applied)</span>}
         </h2>
         
         <div className="grid md:grid-cols-2 gap-6 mb-6">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="font-medium text-lg mb-2">Performance Metrics</h3>
+          <div className="bg-[#3a3a3a] p-4 rounded-lg">
+            <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">Performance Metrics</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600">Starting Balance:</span>
-                <span className="font-medium">{formatCurrency(inputs.accountSize)}</span>
+                <span className="text-gray-400">Starting Balance:</span>
+                <span className="font-medium font-white">{formatCurrency(inputs.accountSize)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Final Balance:</span>
-                <span className="font-medium">{formatCurrency(results.finalBalance)}</span>
+                <span className="text-gray-400">Final Balance:</span>
+                <span className="font-medium font-white">{formatCurrency(results.finalBalance)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Net Profit:</span>
+                <span className="text-gray-400 font-white">Net Profit:</span>
                 <span className={`font-medium ${results.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatCurrency(results.netProfit)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Fixed Risk Amount:</span>
-                <span className="font-medium">{formatCurrency(results.fixedRiskAmount)}</span>
+                <span className="text-gray-400">Fixed Risk Amount:</span>
+                <span className="font-medium font-white">{formatCurrency(results.fixedRiskAmount)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Risk-Reward Ratio:</span>
-                <span className="font-medium">{results.riskRewardRatio.toFixed(2)}:1</span>
+                <span className="text-gray-400">Risk-Reward Ratio:</span>
+                <span className="font-medium font-white">{results.riskRewardRatio.toFixed(2)}:1</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Risk per Trade (%):</span>
-                <span className="font-medium">{results.riskPercentage.toFixed(2)}%</span>
+                <span className="text-gray-400">Risk per Trade (%):</span>
+                <span className="font-medium font-white">{results.riskPercentage.toFixed(2)}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Wins / Losses:</span>
-                <span className="font-medium">{results.winCount} / {results.lossCount}</span>
+                <span className="text-gray-400">Wins / Losses:</span>
+                <span className="font-medium font-white">{results.winCount} / {results.lossCount}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Trades Taken:</span>
-                <span className="font-medium">{results.actualTradesTaken} of {inputs.numberOfTrades}</span>
+                <span className="text-gray-400">Trades Taken:</span>
+                <span className="font-medium font-white">{results.actualTradesTaken} of {inputs.numberOfTrades}</span>
               </div>
             </div>
           </div>
           
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="font-medium text-lg mb-2">Risk Analysis</h3>
+          <div className="bg-[#3a3a3a] p-4 rounded-lg">
+            <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">Risk Analysis</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600">Max Drawdown (Peak-to-Trough):</span>
+                <span className="text-gray-400">Max Drawdown (Peak-to-Trough):</span>
                 <span className="font-medium text-red-600">{results.maxDrawdown.toFixed(2)}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">System Expectancy:</span>
+                <span className="text-gray-400">System Expectancy:</span>
                 <span className={`font-medium ${results.expectancy >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {results.expectancy.toFixed(2)}R
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Average Trade Amount:</span>
+                <span className="text-gray-400">Average Trade Amount:</span>
                 <span className={`font-medium ${results.averageTradeAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatCurrency(results.averageTradeAmount)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Avg Trade (% of initial):</span>
+                <span className="text-gray-400">Avg Trade (% of initial):</span>
                 <span className={`font-medium ${results.averageTradePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {results.averageTradePercent.toFixed(2)}%
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Total Return:</span>
+                <span className="text-gray-400">Total Return:</span>
                 <span className={`font-medium ${results.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {results.totalReturn.toFixed(2)}%
                 </span>
@@ -597,25 +597,25 @@ const TradingSystemAnalyzer = () => {
                     <span className="font-medium text-blue-600">Prop Firm Analysis:</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Max Drawdown Breach:</span>
+                    <span className="text-gray-400">Max Drawdown Breach:</span>
                     <span className="font-medium text-red-600">
                       {results.propFirmStats.maxDrawdownBreaches > 0 ? "Yes (Challenge Failed)" : "No"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Daily Loss Breaches:</span>
+                    <span className="text-gray-400">Daily Loss Breaches:</span>
                     <span className="font-medium text-red-600">
                       {results.propFirmStats.dailyLossBreaches}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 text-xs">
+                    <span className="text-gray-400 text-xs">
                       (Trading halted on breach, drawdown accumulates)
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Cumulative Drawdown:</span>
-                    <span className="font-medium">
+                    <span className="text-gray-400">Cumulative Drawdown:</span>
+                    <span className="font-medium text-white">
                       {results.propFirmStats.cumulativeDrawdown.toFixed(2)}%
                     </span>
                     <span className="text-xs text-gray-500">
@@ -623,26 +623,26 @@ const TradingSystemAnalyzer = () => {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Max Consecutive Loss Days:</span>
-                    <span className="font-medium">
+                    <span className="text-gray-400">Max Consecutive Loss Days:</span>
+                    <span className="font-medium text-white">
                       {results.propFirmStats.maxConsecutiveLossDays}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Trading Days:</span>
-                    <span className="font-medium">
+                    <span className="text-gray-400">Trading Days:</span>
+                    <span className="font-medium text-white">
                       {results.propFirmStats.actualDaysCount}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Trades Taken:</span>
-                    <span className="font-medium">
+                    <span className="text-gray-400">Trades Taken:</span>
+                    <span className="font-medium text-white">
                       {results.propFirmStats.actualTradeCount} of {inputs.numberOfTrades}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Avg Trades Per Day:</span>
-                    <span className="font-medium">
+                    <span className="text-gray-400">Avg Trades Per Day:</span>
+                    <span className="font-medium text-white">
                       {results.propFirmStats.avgTradesPerDay.toFixed(1)} 
                       <span className="text-xs text-gray-500 ml-1">(Target: {results.propFirmStats.tradesPerDayTarget})</span>
                     </span>
@@ -652,11 +652,11 @@ const TradingSystemAnalyzer = () => {
                     <div className="mt-4 border-t border-gray-200 pt-2">
                       <div className="font-medium text-red-600 mb-2">Drawdown Breach Details:</div>
                       <div className="mb-1">
-                        <span className="text-gray-600">Day when breach occurred: </span>
-                        <span className="font-medium">Day {results.propFirmStats.breachDay.day}</span>
+                        <span className="text-gray-400">Day when breach occurred: </span>
+                        <span className="font-medium text-white">Day {results.propFirmStats.breachDay.day}</span>
                       </div>
                       <div className="mb-1">
-                        <span className="text-gray-600">Daily P&L that caused breach: </span>
+                        <span className="text-gray-400">Daily P&L that caused breach: </span>
                         <span className={`font-medium ${results.propFirmStats.breachDay.dailyPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatCurrency(results.propFirmStats.breachDay.dailyPnL)} ({results.propFirmStats.breachDay.dailyPnLPercent.toFixed(2)}%)
                         </span>
@@ -685,8 +685,8 @@ const TradingSystemAnalyzer = () => {
         </div>
         
         <div className="mb-6">
-          <h3 className="font-medium text-lg mb-2">Equity Curve</h3>
-          <div className="w-full h-64 bg-gray-100 relative p-2 border rounded">
+          <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">Equity Curve</h3>
+          <div className="w-full h-64 bg-[#3a3a3a] relative p-2 border border-gray-600 rounded">
             {results.equity.length > 1 && (
               <svg viewBox={`0 0 ${results.equity.length - 1} 100`} className="w-full h-full">
                 {(() => {
@@ -720,13 +720,13 @@ const TradingSystemAnalyzer = () => {
                       <path
                         d={path}
                         fill="none"
-                        stroke="rgb(59, 130, 246)"
+                        stroke="#4a6cf7"
                         strokeWidth="0.5"
                       />
                       <path
                         d={initialBalanceLine}
                         fill="none"
-                        stroke="rgba(34, 197, 94, 0.7)"
+                        stroke="rgba(0, 255, 227, 0.7)"
                         strokeWidth="0.6"
                         strokeDasharray="0.5,0.5"
                       />
@@ -740,8 +740,8 @@ const TradingSystemAnalyzer = () => {
         </div>
         
         <div>
-          <h3 className="font-medium text-lg mb-2">Drawdown Chart</h3>
-          <div className="w-full h-48 bg-gray-100 relative p-2 border rounded">
+          <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">Drawdown Chart</h3>
+          <div className="w-full h-48 bg-[#3a3a3a] relative p-2 border border-gray-600 rounded">
             {results.drawdowns.length > 0 && (
               <svg viewBox={`0 0 ${results.drawdowns.length} 100`} className="w-full h-full">
                 {(() => {
@@ -758,7 +758,7 @@ const TradingSystemAnalyzer = () => {
                       <path
                         d={path}
                         fill="none"
-                        stroke="rgb(220, 38, 38)"
+                        stroke="#ff4136"
                         strokeWidth="0.5"
                       />
                     </>
