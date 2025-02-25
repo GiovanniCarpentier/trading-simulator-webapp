@@ -328,6 +328,37 @@ const TradingSystemAnalyzer = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4 bg-[#1a1a1a] rounded-lg shadow">
+        <div className="bg-[#2a2a2a] p-4 rounded-lg shadow-sm mb-6">
+        <h2 className="text-2xl font-bold text-white mb-2">About the Trading System Analyzer</h2>
+        <p className="text-gray-300">
+          Welcome to the Trading System Analyzer – a comprehensive simulation tool designed for traders who want to evaluate the performance and risk management of a non-compounding trading strategy. Whether you are an individual trader or preparing for a prop firm challenge, this tool provides valuable insights into how your system might perform in real-world conditions.
+        </p>
+        <p className="text-gray-300 mt-2">
+          <strong>Key Features:</strong>
+        </p>
+        <ul className="list-disc list-inside text-gray-300 mt-1">
+          <li>
+            <strong>Performance Simulation:</strong> Enter parameters such as your average win, average loss, win rate, account size, and number of trades to simulate your trading performance.
+          </li>
+          <li>
+            <strong>Risk Metrics & Equity Curve:</strong> The tool calculates vital statistics like risk-reward ratio, system expectancy, drawdowns, and displays an equity curve and drawdown chart, helping you visualize your account's performance.
+          </li>
+          <li>
+            <strong>Prop Firm Evaluation:</strong> For those applying to prop firms, the tool offers multiple drawdown limit modes – including fixed, trailing, and a special "trailing until initial" mode. This mode locks in a maximum allowed loss until your account reaches a profit threshold.
+          </li>
+          <li>
+            <strong>Fail Rate Estimation:</strong> Run multiple simulation trials to estimate the probability that your trading system will breach the prop firm’s risk management limits, giving you a clear fail rate percentage.
+          </li>
+        </ul>
+        <p className="text-gray-300 mt-2">
+          By adjusting these parameters and experimenting with different risk management settings, you can gain a detailed understanding of how your trading strategy behaves under various market conditions. This enables you to fine-tune your approach and ensure that you are well-prepared for the strict risk criteria often required by prop firms.
+        </p>
+        <p className="text-gray-300 mt-2">
+          Get started by entering your trading parameters below, and use the simulation results to guide your strategy adjustments!
+        </p>
+      </div>
+
+      {/* Trading Simulation Form */}
       <h1 className="text-2xl font-bold text-center mb-6 text-white">
         Trading System Analyzer (Non-Compounding)
       </h1>
