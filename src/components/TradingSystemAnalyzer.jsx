@@ -372,9 +372,6 @@ const TradingSystemAnalyzer = () => {
       </div>
 
       {/* Trading Simulation Form */}
-      <h1 className="text-2xl font-bold text-center mb-6 text-white">
-        Trading System Analyzer (Non-Compounding)
-      </h1>
       <div className="mb-6 bg-[#2a2a2a] p-4 rounded-lg shadow-sm">
         <h2 className="text-xl font-semibold mb-4 text-[#00ffe3]">Trading Parameters</h2>
         <div className="grid md:grid-cols-2 gap-4">
