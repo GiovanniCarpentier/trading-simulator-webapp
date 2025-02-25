@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const TradingSystemAnalyzer = () => {
-  // Function to format currency
+  // Function to format currency values.
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -11,6 +11,7 @@ const TradingSystemAnalyzer = () => {
     }).format(value);
   };
 
+  // State for input parameters. Note the new simulationRuns field.
   const [inputs, setInputs] = useState({
     avgWin: 200,
     avgLoss: 100,
@@ -24,40 +25,33 @@ const TradingSystemAnalyzer = () => {
     maxDailyLoss: 2,
     tradesPerDay: 5,
     showBreachDetails: true,
-    // NEW: drawdown type selector and fixed drawdown input
-    // Options for drawdownType: 'trailing', 'trailingUntilInitial', 'fixed'
+    // Drawdown type selector: 'trailing', 'trailingUntilInitial', or 'fixed'
     drawdownType: 'trailing',
     fixedDrawdownLimit: 1000, // in dollars; used if drawdownType === 'fixed'
+    // New: number of simulation runs for fail rate estimation
+    simulationRuns: 1,
   });
 
   const [results, setResults] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle input changes (ensuring select values are not parsed as numbers)
+  // Generic handler for input changes.
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === 'checkbox') {
-      setInputs({
-        ...inputs,
-        [name]: checked,
-      });
+      setInputs({ ...inputs, [name]: checked });
     } else if (name === 'drawdownType') {
-      setInputs({
-        ...inputs,
-        [name]: value,
-      });
+      setInputs({ ...inputs, [name]: value });
     } else {
-      setInputs({
-        ...inputs,
-        [name]: parseFloat(value),
-      });
+      setInputs({ ...inputs, [name]: parseFloat(value) });
     }
   };
 
+  // Main simulation function.
   const runSimulation = () => {
     setIsLoading(true);
 
-    // Offload calculation with setTimeout
+    // Offload simulation calculations using setTimeout.
     setTimeout(() => {
       const {
         avgWin,
@@ -70,250 +64,268 @@ const TradingSystemAnalyzer = () => {
         maxDailyLoss,
         tradesPerDay,
         drawdownType,
+        fixedDrawdownLimit,
+        simulationRuns,
       } = inputs;
 
-      // Calculate risk-reward ratio and risk percentage (non-compounding)
-      const riskRewardRatio = avgWin / avgLoss;
-      const riskPercentage = (avgLoss / accountSize) * 100;
+      // Helper function to run a single simulation.
+      const simulateOnce = () => {
+        // Calculate basic parameters.
+        const riskRewardRatio = avgWin / avgLoss;
+        const riskPercentage = (avgLoss / accountSize) * 100;
+        const initialBalance = accountSize;
+        // Non-compounding: fixed risk amount equals avgLoss.
+        const fixedRiskAmount = initialBalance * (riskPercentage / 100);
 
-      // For non-compounding, the fixed risk amount equals avgLoss.
-      const initialBalance = accountSize;
-      const fixedRiskAmount = initialBalance * (riskPercentage / 100);
+        let balance = initialBalance;
+        let equity = [balance];
+        let drawdowns = [];
+        let currentDrawdown = 0;
+        let maxDrawdownInSim = 0;
+        let peakBalance = balance;
+        let winCount = 0;
+        let lossCount = 0;
+        let profits = 0;
+        let losses = 0;
+        let breakEvenTrade = -1;
 
-      let balance = initialBalance;
-      let equity = [balance];
-      let drawdowns = [];
-      let currentDrawdown = 0;
-      let maxDrawdownInSim = 0;
-      let peakBalance = balance;
-      let winCount = 0;
-      let lossCount = 0;
-      let profits = 0;
-      let losses = 0;
-      let breakEvenTrade = -1;
+        // Variables for tracking prop firm rules.
+        let dayCount = 1;
+        let tradeInDay = 0;
+        let dayStartBalance = initialBalance;
+        let dailyPnL = 0;
+        let isAccountBlown = false;
+        let dailyLossBreaches = 0;
+        let consecutiveLossDays = 0;
+        let maxConsecutiveLossDays = 0;
+        let actualTradesTaken = 0;
 
-      // Variables for prop firm rules
-      let dayCount = 1; // start at day 1
-      let tradeInDay = 0;
-      let dayStartBalance = initialBalance;
-      let dailyPnL = 0;
-      let isAccountBlown = false;
-      let dailyLossBreaches = 0;
-      let consecutiveLossDays = 0;
-      let maxConsecutiveLossDays = 0;
-      let actualTradesTaken = 0; // count actual trades taken
+        // For trailingUntilInitial mode: determine fixed loss in dollars and set the initial allowed minimum.
+        const fixedLoss = initialBalance * (maxDrawdown / 100);
+        let persistentAllowedMinimum =
+          isPropFirm && drawdownType === 'trailingUntilInitial'
+            ? initialBalance - fixedLoss
+            : undefined;
 
-      // For trailingUntilInitial, persist the allowed minimum across trades.
-      // fixedLoss is calculated based on initialBalance and maxDrawdown%
-      const fixedLoss = initialBalance * (maxDrawdown / 100);
-      let persistentAllowedMinimum = undefined; 
-      if (isPropFirm && drawdownType === 'trailingUntilInitial') {
-        persistentAllowedMinimum = initialBalance - fixedLoss;
-      }
+        // Daily log for additional details.
+        let dailyLogs = [];
+        let currentDayLog = {
+          day: 1,
+          trades: [],
+          startBalance: initialBalance,
+          endBalance: initialBalance,
+          dailyPnL: 0,
+          dailyPnLPercent: 0,
+          dailyLossBreach: false,
+          maxDrawdownBreach: false,
+          allowedMinimum: null,
+        };
 
-      // Track daily performance for breach analysis
-      let dailyLogs = [];
-      let currentDayLog = {
-        day: 1,
-        trades: [],
-        startBalance: initialBalance,
-        endBalance: initialBalance,
-        dailyPnL: 0,
-        dailyPnLPercent: 0,
-        dailyLossBreach: false,
-        maxDrawdownBreach: false,
-        allowedMinimum: null,
-      };
-
-      // Run simulation trade-by-trade
-      for (let i = 0; i < numberOfTrades; i++) {
-        if (isPropFirm && isAccountBlown) {
-          continue;
-        }
-        actualTradesTaken++;
-
-        // Determine win or loss for this trade
-        const tradeNumber = actualTradesTaken;
-        const isWin = Math.random() * 100 < winRate;
-        let tradeResult = 0;
-
-        if (isWin) {
-          const profit = fixedRiskAmount * riskRewardRatio;
-          balance += profit;
-          profits += profit;
-          winCount++;
-          tradeResult = profit;
-          if (isPropFirm) dailyPnL += profit;
-        } else {
-          balance -= fixedRiskAmount;
-          losses += fixedRiskAmount;
-          lossCount++;
-          tradeResult = -fixedRiskAmount;
-          if (isPropFirm) dailyPnL -= fixedRiskAmount;
-        }
-
-        // Log trade details
-        currentDayLog.trades.push({
-          tradeNumber,
-          isWin,
-          amount: tradeResult,
-          balanceAfter: balance,
-        });
-        equity.push(balance);
-
-        // Detect break-even trade (when balance crosses the initial balance)
-        if (
-          breakEvenTrade === -1 &&
-          balance >= initialBalance &&
-          equity[equity.length - 2] < initialBalance
-        ) {
-          breakEvenTrade = i;
-        }
-
-        // Update peak balance and compute current drawdown from the peak
-        if (balance > peakBalance) {
-          peakBalance = balance;
-          currentDrawdown = 0;
-        } else {
-          currentDrawdown = ((peakBalance - balance) / peakBalance) * 100;
-          if (currentDrawdown > maxDrawdownInSim) {
-            maxDrawdownInSim = currentDrawdown;
+        // Run through the trades.
+        for (let i = 0; i < numberOfTrades; i++) {
+          if (isPropFirm && isAccountBlown) {
+            continue;
           }
-        }
-        drawdowns.push(currentDrawdown);
+          actualTradesTaken++;
 
-        // For prop firm rules, determine the allowed minimum balance
-        if (isPropFirm) {
-          let allowedMinimum;
-          if (drawdownType === 'fixed') {
-            // Fixed: allowed minimum remains constant
-            allowedMinimum = initialBalance - inputs.fixedDrawdownLimit;
-          } else if (drawdownType === 'trailingUntilInitial') {
-            // Update the persistent allowed minimum if a new peak is reached.
-            // It cannot be lower than (initialBalance - fixedLoss) nor exceed the initial balance.
-            let potentialAllowed = peakBalance - fixedLoss;
-            if (potentialAllowed > initialBalance) {
-              potentialAllowed = initialBalance;
-            }
-            persistentAllowedMinimum = Math.max(persistentAllowedMinimum, potentialAllowed);
-            allowedMinimum = persistentAllowedMinimum;
+          // Determine trade outcome.
+          const tradeNumber = actualTradesTaken;
+          const isWin = Math.random() * 100 < winRate;
+          let tradeResult = 0;
+          if (isWin) {
+            const profit = fixedRiskAmount * riskRewardRatio;
+            balance += profit;
+            profits += profit;
+            winCount++;
+            tradeResult = profit;
+            if (isPropFirm) dailyPnL += profit;
           } else {
-            // Trailing: always use the current peak
-            allowedMinimum = peakBalance * (1 - maxDrawdown / 100);
+            balance -= fixedRiskAmount;
+            losses += fixedRiskAmount;
+            lossCount++;
+            tradeResult = -fixedRiskAmount;
+            if (isPropFirm) dailyPnL -= fixedRiskAmount;
           }
-          currentDayLog.allowedMinimum = allowedMinimum;
 
-          // Check if the current balance breaches the allowed minimum
-          if (balance < allowedMinimum) {
-            isAccountBlown = true;
-            currentDayLog.maxDrawdownBreach = true;
+          currentDayLog.trades.push({
+            tradeNumber,
+            isWin,
+            amount: tradeResult,
+            balanceAfter: balance,
+          });
+          equity.push(balance);
+
+          // Detect break-even trade.
+          if (
+            breakEvenTrade === -1 &&
+            balance >= initialBalance &&
+            equity[equity.length - 2] < initialBalance
+          ) {
+            breakEvenTrade = i;
           }
-        }
 
-        // Increment trades in the current day (if in prop firm mode)
-        if (isPropFirm && tradesPerDay > 0) {
-          tradeInDay++;
-        }
-
-        // Daily loss check: halt trading for the day if loss exceeds maxDailyLoss
-        if (isPropFirm && dailyPnL < 0) {
-          const dailyLossPercent = (Math.abs(dailyPnL) / dayStartBalance) * 100;
-          if (dailyLossPercent > maxDailyLoss) {
-            dailyLossBreaches++;
-            currentDayLog.dailyLossBreach = true;
-            tradeInDay = tradesPerDay; // force end-of-day
-            consecutiveLossDays++;
-            if (consecutiveLossDays > maxConsecutiveLossDays) {
-              maxConsecutiveLossDays = consecutiveLossDays;
+          // Update peak balance and current drawdown.
+          if (balance > peakBalance) {
+            peakBalance = balance;
+            currentDrawdown = 0;
+          } else {
+            currentDrawdown = ((peakBalance - balance) / peakBalance) * 100;
+            if (currentDrawdown > maxDrawdownInSim) {
+              maxDrawdownInSim = currentDrawdown;
             }
           }
+          drawdowns.push(currentDrawdown);
+
+          // Check prop firm drawdown rules.
+          if (isPropFirm) {
+            let allowedMinimum;
+            if (drawdownType === 'fixed') {
+              // Fixed mode: allowed balance must not drop below initial minus fixedDrawdownLimit.
+              allowedMinimum = initialBalance - fixedDrawdownLimit;
+            } else if (drawdownType === 'trailingUntilInitial') {
+              // Update the persistent allowed minimum.
+              let potentialAllowed = peakBalance - fixedLoss;
+              if (potentialAllowed > initialBalance) {
+                potentialAllowed = initialBalance;
+              }
+              persistentAllowedMinimum = Math.max(persistentAllowedMinimum, potentialAllowed);
+              allowedMinimum = persistentAllowedMinimum;
+            } else {
+              // Trailing: always recalc allowed minimum based on current peak.
+              allowedMinimum = peakBalance * (1 - maxDrawdown / 100);
+            }
+            currentDayLog.allowedMinimum = allowedMinimum;
+
+            // If balance falls below the allowed minimum, the account is considered blown.
+            if (balance < allowedMinimum) {
+              isAccountBlown = true;
+              currentDayLog.maxDrawdownBreach = true;
+            }
+          }
+
+          // Increment trades per day.
+          if (isPropFirm && tradesPerDay > 0) {
+            tradeInDay++;
+          }
+
+          // Daily loss check: if losses exceed maxDailyLoss for the day, end trading for that day.
+          if (isPropFirm && dailyPnL < 0) {
+            const dailyLossPercent = (Math.abs(dailyPnL) / dayStartBalance) * 100;
+            if (dailyLossPercent > maxDailyLoss) {
+              dailyLossBreaches++;
+              currentDayLog.dailyLossBreach = true;
+              tradeInDay = tradesPerDay;
+              consecutiveLossDays++;
+              if (consecutiveLossDays > maxConsecutiveLossDays) {
+                maxConsecutiveLossDays = consecutiveLossDays;
+              }
+            }
+          }
+
+          // End-of-day logic: reset daily counters when tradesPerDay reached.
+          if (isPropFirm && tradesPerDay > 0 && tradeInDay >= tradesPerDay) {
+            if (dailyPnL >= 0) {
+              consecutiveLossDays = 0;
+            }
+            currentDayLog.endBalance = balance;
+            currentDayLog.dailyPnL = dailyPnL;
+            currentDayLog.dailyPnLPercent = (dailyPnL / dayStartBalance) * 100;
+            dailyLogs.push({ ...currentDayLog });
+
+            dayCount++;
+            tradeInDay = 0;
+            dayStartBalance = balance;
+            dailyPnL = 0;
+            currentDayLog = {
+              day: dayCount,
+              trades: [],
+              startBalance: balance,
+              endBalance: balance,
+              dailyPnL: 0,
+              dailyPnLPercent: 0,
+              dailyLossBreach: false,
+              maxDrawdownBreach: false,
+              allowedMinimum: null,
+            };
+          }
         }
 
-        // End-of-day: if the day's trade count has been reached
-        if (isPropFirm && tradesPerDay > 0 && tradeInDay >= tradesPerDay) {
-          if (dailyPnL >= 0) {
-            consecutiveLossDays = 0;
-          }
+        // Process any remaining day.
+        if (isPropFirm && tradesPerDay > 0 && currentDayLog.trades.length > 0) {
           currentDayLog.endBalance = balance;
           currentDayLog.dailyPnL = dailyPnL;
           currentDayLog.dailyPnLPercent = (dailyPnL / dayStartBalance) * 100;
           dailyLogs.push({ ...currentDayLog });
-
-          dayCount++;
-          tradeInDay = 0;
-          dayStartBalance = balance;
-          dailyPnL = 0;
-          currentDayLog = {
-            day: dayCount,
-            trades: [],
-            startBalance: balance,
-            endBalance: balance,
-            dailyPnL: 0,
-            dailyPnLPercent: 0,
-            dailyLossBreach: false,
-            maxDrawdownBreach: false,
-            allowedMinimum: null,
-          };
         }
-      }
 
-      // Process any remaining trades in the final day
-      if (isPropFirm && tradesPerDay > 0 && currentDayLog.trades.length > 0) {
-        currentDayLog.endBalance = balance;
-        currentDayLog.dailyPnL = dailyPnL;
-        currentDayLog.dailyPnLPercent = (dailyPnL / dayStartBalance) * 100;
-        dailyLogs.push({ ...currentDayLog });
-      }
+        // Compute additional performance metrics.
+        const probWin = winRate / 100;
+        const probLoss = 1 - probWin;
+        const expectancy = probWin * avgWin - probLoss * avgLoss;
+        const averageTradeAmount =
+          actualTradesTaken > 0 ? (profits - losses) / actualTradesTaken : 0;
+        const averageTradePercent = (averageTradeAmount / accountSize) * 100;
+        const totalReturn = ((balance - accountSize) / accountSize) * 100;
+        const netProfit = balance - initialBalance;
 
-      // Calculate expectancy and average trade metrics
-      const probWin = winRate / 100;
-      const probLoss = 1 - probWin;
-      const expectancy = probWin * avgWin - probLoss * avgLoss;
-      const averageTradeAmount = actualTradesTaken > 0 ? (profits - losses) / actualTradesTaken : 0;
-      const averageTradePercent = (averageTradeAmount / accountSize) * 100;
-      const totalReturn = ((balance - accountSize) / accountSize) * 100;
-      const netProfit = balance - accountSize;
+        const simulationResult = {
+          finalBalance: balance,
+          maxDrawdown: maxDrawdownInSim,
+          expectancy,
+          averageTradeAmount,
+          averageTradePercent,
+          totalReturn,
+          netProfit,
+          equity,
+          drawdowns,
+          winCount,
+          lossCount,
+          fixedRiskAmount,
+          breakEvenTrade,
+          riskRewardRatio,
+          riskPercentage,
+          propFirmStats: isPropFirm
+            ? {
+                maxDailyLoss,
+                tradesPerDayTarget: tradesPerDay,
+                dailyLossBreaches,
+                maxConsecutiveLossDays,
+                actualTradeCount: actualTradesTaken,
+                actualDaysCount: dayCount,
+                avgTradesPerDay: dayCount > 0 ? actualTradesTaken / dayCount : 0,
+                dailyLogs,
+                breachDay: dailyLogs.find((day) => day.maxDrawdownBreach),
+                drawdownType,
+                fixedDrawdownLimit: drawdownType === 'fixed' ? fixedDrawdownLimit : null,
+              }
+            : null,
+          isPropFirm,
+          actualTradesTaken,
+          isAccountBlown,
+        };
+        return simulationResult;
+      };
 
-      // Find the day (if any) when a drawdown breach occurred
-      const breachDay = dailyLogs.find((day) => day.maxDrawdownBreach);
-
-      // Set prop firm stats (if applicable)
-      const propFirmStats = isPropFirm
-        ? {
-            maxDailyLoss: maxDailyLoss,
-            tradesPerDayTarget: tradesPerDay,
-            dailyLossBreaches: dailyLossBreaches,
-            maxConsecutiveLossDays: maxConsecutiveLossDays,
-            actualTradeCount: actualTradesTaken,
-            actualDaysCount: dayCount,
-            avgTradesPerDay: dayCount > 0 ? actualTradesTaken / dayCount : 0,
-            dailyLogs: dailyLogs,
-            breachDay: breachDay,
-            drawdownType: drawdownType,
-            fixedDrawdownLimit: drawdownType === 'fixed' ? inputs.fixedDrawdownLimit : null,
+      // If prop firm mode is enabled and simulationRuns > 1, run multiple simulations.
+      if (isPropFirm && simulationRuns > 1) {
+        let failureCount = 0;
+        for (let j = 0; j < simulationRuns; j++) {
+          const result = simulateOnce();
+          if (result.isAccountBlown) {
+            failureCount++;
           }
-        : null;
-
-      setResults({
-        finalBalance: balance,
-        maxDrawdown: maxDrawdownInSim,
-        expectancy,
-        averageTradeAmount,
-        averageTradePercent,
-        totalReturn,
-        netProfit,
-        equity,
-        drawdowns,
-        winCount,
-        lossCount,
-        fixedRiskAmount,
-        breakEvenTrade,
-        riskRewardRatio,
-        riskPercentage,
-        propFirmStats,
-        isPropFirm,
-        actualTradesTaken,
-      });
+        }
+        const failRate = (failureCount / simulationRuns) * 100;
+        setResults({
+          simulationRuns,
+          failureCount,
+          failRate,
+        });
+      } else {
+        // Otherwise, run a single simulation and show detailed results.
+        const result = simulateOnce();
+        setResults(result);
+      }
       setIsLoading(false);
     }, 0);
   };
@@ -323,16 +335,12 @@ const TradingSystemAnalyzer = () => {
       <h1 className="text-2xl font-bold text-center mb-6 text-white">
         Trading System Analyzer (Non-Compounding)
       </h1>
-
       <div className="mb-6 bg-[#2a2a2a] p-4 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4 text-[#00ffe3]">
-          Trading Parameters
-        </h2>
+        <h2 className="text-xl font-semibold mb-4 text-[#00ffe3]">Trading Parameters</h2>
         <div className="grid md:grid-cols-2 gap-4">
+          {/* Standard inputs */}
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Average Win ($)
-            </label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Average Win ($)</label>
             <input
               type="number"
               name="avgWin"
@@ -340,13 +348,11 @@ const TradingSystemAnalyzer = () => {
               onChange={handleInputChange}
               min="1"
               step="1"
-              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Average Loss ($)
-            </label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Average Loss ($)</label>
             <input
               type="number"
               name="avgLoss"
@@ -354,13 +360,11 @@ const TradingSystemAnalyzer = () => {
               onChange={handleInputChange}
               min="1"
               step="1"
-              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Win Rate (%)
-            </label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Win Rate (%)</label>
             <input
               type="number"
               name="winRate"
@@ -368,26 +372,22 @@ const TradingSystemAnalyzer = () => {
               onChange={handleInputChange}
               min="1"
               max="99"
-              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Account Size ($)
-            </label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Account Size ($)</label>
             <input
               type="number"
               name="accountSize"
               value={inputs.accountSize}
               onChange={handleInputChange}
               min="100"
-              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Number of Trades
-            </label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Number of Trades</label>
             <input
               type="number"
               name="numberOfTrades"
@@ -395,7 +395,7 @@ const TradingSystemAnalyzer = () => {
               onChange={handleInputChange}
               min="1"
               max="10000"
-              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+              className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
             />
           </div>
           <div className="md:col-span-2">
@@ -408,38 +408,31 @@ const TradingSystemAnalyzer = () => {
                 onChange={handleInputChange}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label
-                htmlFor="propFirmCheckbox"
-                className="ml-2 block text-sm font-medium text-gray-400"
-              >
+              <label htmlFor="propFirmCheckbox" className="ml-2 block text-sm font-medium text-gray-400">
                 Enable Prop Firm Rules
               </label>
             </div>
           </div>
-
           {inputs.isPropFirm && (
             <>
+              {/* Prop firm specific settings */}
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Drawdown Limit Type
-                </label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Drawdown Limit Type</label>
                 <select
                   name="drawdownType"
                   value={inputs.drawdownType}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+                  className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
                 >
                   <option value="trailing">Trailing</option>
-                  <option value="trailingUntilInitial">
-                    Trailing Until Initial
-                  </option>
+                  <option value="trailingUntilInitial">Trailing Until Initial</option>
                   <option value="fixed">Fixed (Non-Trailing)</option>
                 </select>
               </div>
               {inputs.drawdownType === 'fixed' ? (
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Fixed Drawdown Limit ($) (e.g., 1000 for a \$10,000 account with 10% limit)
+                    Fixed Drawdown Limit ($) (e.g., 1000 for a $10,000 account with 10% limit)
                   </label>
                   <input
                     type="number"
@@ -447,13 +440,13 @@ const TradingSystemAnalyzer = () => {
                     value={inputs.fixedDrawdownLimit}
                     onChange={handleInputChange}
                     min="1"
-                    className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+                    className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
                   />
                 </div>
               ) : (
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Max Drawdown Allowed (%)
+                    Max Drawdown Allowed (%) (applies as a fixed loss from the initial account until profit is high enough)
                   </label>
                   <input
                     type="number"
@@ -463,7 +456,7 @@ const TradingSystemAnalyzer = () => {
                     min="0.1"
                     max="100"
                     step="0.1"
-                    className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+                    className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
                   />
                 </div>
               )}
@@ -479,13 +472,11 @@ const TradingSystemAnalyzer = () => {
                   min="0.1"
                   max="100"
                   step="0.1"
-                  className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+                  className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Trades Per Day
-                </label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Trades Per Day</label>
                 <input
                   type="number"
                   name="tradesPerDay"
@@ -493,13 +484,27 @@ const TradingSystemAnalyzer = () => {
                   onChange={handleInputChange}
                   min="1"
                   max="100"
-                  className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]"
+                  className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
+                />
+              </div>
+              {/* New input: Simulation Runs for Fail Rate Estimation */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">
+                  Simulation Runs for Fail Rate Estimation (enter a value greater than 1 to estimate)
+                </label>
+                <input
+                  type="number"
+                  name="simulationRuns"
+                  value={inputs.simulationRuns}
+                  onChange={handleInputChange}
+                  min="1"
+                  max="10000"
+                  step="1"
+                  className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Show Breach Details
-                </label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Show Breach Details</label>
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -509,9 +514,7 @@ const TradingSystemAnalyzer = () => {
                     onChange={handleInputChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <span className="ml-2 text-xs text-gray-500">
-                    (Shows details when drawdown limit is exceeded)
-                  </span>
+                  <span className="ml-2 text-xs text-gray-500">(Shows details when drawdown limit is exceeded)</span>
                 </div>
               </div>
             </>
@@ -521,335 +524,120 @@ const TradingSystemAnalyzer = () => {
       <button
         onClick={runSimulation}
         disabled={isLoading}
-        className={`mt-4 ${
-          isLoading ? 'bg-gray-600' : 'bg-[#4a6cf7] hover:bg-opacity-90'
-        } text-white px-4 py-2 rounded transition-colors w-full md:w-auto`}
+        className={`mt-4 ${isLoading ? 'bg-gray-600' : 'bg-[#4a6cf7] hover:bg-opacity-90'} text-white px-4 py-2 rounded transition-colors w-full md:w-auto`}
       >
         {isLoading ? 'Running Simulation...' : 'Run Simulation'}
       </button>
-
       {results && (
         <div className="bg-[#2a2a2a] p-4 rounded-lg shadow-sm mt-6">
-          <h2 className="text-xl font-semibold mb-4 text-[#00ffe3]">
-            Simulation Results
-            {results.isPropFirm && (
-              <span className="ml-2 text-sm font-normal text-[#4a6cf7]">
-                (Prop Firm Rules Applied)
-              </span>
-            )}
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-[#3a3a3a] p-4 rounded-lg">
-              <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">
-                Performance Metrics
-              </h3>
+          {inputs.isPropFirm && inputs.simulationRuns > 1 ? (
+            <>
+              <h2 className="text-xl font-semibold mb-4 text-[#00ffe3]">Prop Firm Fail Rate Estimation</h2>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Starting Balance:</span>
-                  <span className="font-medium font-white">
-                    {formatCurrency(inputs.accountSize)}
-                  </span>
+                  <span className="text-gray-400">Simulation Runs:</span>
+                  <span className="font-medium text-white">{results.simulationRuns}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Final Balance:</span>
-                  <span className="font-medium font-white">
-                    {formatCurrency(results.finalBalance)}
-                  </span>
+                  <span className="text-gray-400">Failures (Broke Max Drawdown):</span>
+                  <span className="font-medium text-red-600">{results.failureCount}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Net Profit:</span>
-                  <span
-                    className={`font-medium ${
-                      results.netProfit >= 0
-                        ? 'text-green-600'
-                        : 'text-red-600'
-                    }`}
-                  >
-                    {formatCurrency(results.netProfit)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Fixed Risk Amount:</span>
-                  <span className="font-medium font-white">
-                    {formatCurrency(results.fixedRiskAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Risk-Reward Ratio:</span>
-                  <span className="font-medium font-white">
-                    {results.riskRewardRatio.toFixed(2)}:1
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Risk per Trade (%):</span>
-                  <span className="font-medium font-white">
-                    {results.riskPercentage.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Wins / Losses:</span>
-                  <span className="font-medium font-white">
-                    {results.winCount} / {results.lossCount}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Trades Taken:</span>
-                  <span className="font-medium font-white">
-                    {results.actualTradesTaken} of {inputs.numberOfTrades}
-                  </span>
+                  <span className="text-gray-400">Estimated Fail Rate:</span>
+                  <span className="font-medium text-red-600">{results.failRate.toFixed(2)}%</span>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-[#3a3a3a] p-4 rounded-lg">
-              <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">
-                Risk Analysis
-              </h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Max Drawdown (Peak-to-Trough):</span>
-                  <span className="font-medium text-red-600">
-                    {results.maxDrawdown.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">System Expectancy:</span>
-                  <span
-                    className={`font-medium ${
-                      results.expectancy >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}
-                  >
-                    {results.expectancy.toFixed(2)}$
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Average Trade Amount:</span>
-                  <span
-                    className={`font-medium ${
-                      results.averageTradeAmount >= 0
-                        ? 'text-green-600'
-                        : 'text-red-600'
-                    }`}
-                  >
-                    {formatCurrency(results.averageTradeAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Avg Trade (% of initial):</span>
-                  <span
-                    className={`font-medium ${
-                      results.averageTradePercent >= 0
-                        ? 'text-green-600'
-                        : 'text-red-600'
-                    }`}
-                  >
-                    {results.averageTradePercent.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Total Return:</span>
-                  <span
-                    className={`font-medium ${
-                      results.totalReturn >= 0
-                        ? 'text-green-600'
-                        : 'text-red-600'
-                    }`}
-                  >
-                    {results.totalReturn.toFixed(2)}%
-                  </span>
-                </div>
-
-                {results.propFirmStats && (
-                  <>
-                    <div className="pt-2 border-t border-gray-200 mt-2">
-                      <span className="font-medium text-blue-600">
-                        Prop Firm Analysis:
+            </>
+          ) : (
+            <>
+              <h2 className="text-xl font-semibold mb-4 text-[#00ffe3]">
+                Simulation Results
+                {results.isPropFirm && (
+                  <span className="ml-2 text-sm font-normal text-[#4a6cf7]">(Prop Firm Rules Applied)</span>
+                )}
+              </h2>
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-[#3a3a3a] p-4 rounded-lg">
+                  <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">Performance Metrics</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Starting Balance:</span>
+                      <span className="font-medium text-white">{formatCurrency(inputs.accountSize)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Final Balance:</span>
+                      <span className="font-medium text-white">{formatCurrency(results.finalBalance)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Net Profit:</span>
+                      <span className={`font-medium ${results.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(results.netProfit)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Max Daily Loss Allowed:</span>
+                      <span className="text-gray-400">Fixed Risk Amount:</span>
+                      <span className="font-medium text-white">{formatCurrency(results.fixedRiskAmount)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Risk-Reward Ratio:</span>
+                      <span className="font-medium text-white">{results.riskRewardRatio.toFixed(2)}:1</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Risk per Trade (%):</span>
+                      <span className="font-medium text-white">{results.riskPercentage.toFixed(2)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Wins / Losses:</span>
                       <span className="font-medium text-white">
-                        {results.propFirmStats.maxDailyLoss}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Drawdown Type:</span>
-                      <span className="font-medium text-white">
-                        {results.propFirmStats.drawdownType}
-                      </span>
-                    </div>
-                    {results.propFirmStats.drawdownType === 'fixed' && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Fixed Drawdown Limit:</span>
-                        <span className="font-medium text-white">
-                          {formatCurrency(inputs.fixedDrawdownLimit)}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Daily Loss Breaches:</span>
-                      <span className="font-medium text-red-600">
-                        {results.propFirmStats.dailyLossBreaches}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Max Consecutive Loss Days:</span>
-                      <span className="font-medium text-white">
-                        {results.propFirmStats.maxConsecutiveLossDays}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Trading Days:</span>
-                      <span className="font-medium text-white">
-                        {results.propFirmStats.actualDaysCount}
+                        {results.winCount} / {results.lossCount}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Trades Taken:</span>
                       <span className="font-medium text-white">
-                        {results.propFirmStats.actualTradeCount} of {inputs.numberOfTrades}
+                        {results.actualTradesTaken} of {inputs.numberOfTrades}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-[#3a3a3a] p-4 rounded-lg">
+                  <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">Risk Analysis</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Max Drawdown (Peak-to-Trough):</span>
+                      <span className="font-medium text-red-600">
+                        {results.maxDrawdown.toFixed(2)}%
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Avg Trades Per Day:</span>
-                      <span className="font-medium text-white">
-                        {results.propFirmStats.avgTradesPerDay.toFixed(1)}
-                        <span className="text-xs text-gray-500 ml-1">
-                          (Target: {results.propFirmStats.tradesPerDayTarget})
-                        </span>
+                      <span className="text-gray-400">System Expectancy:</span>
+                      <span className={`font-medium ${results.expectancy >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {results.expectancy.toFixed(2)}$
                       </span>
                     </div>
-                    {inputs.showBreachDetails && results.propFirmStats.breachDay && (
-                      <div className="mt-4 border-t border-gray-200 pt-2">
-                        <div className="font-medium text-red-600 mb-2">
-                          Drawdown Breach Details:
-                        </div>
-                        <div className="mb-1">
-                          <span className="text-gray-400">
-                            Day when breach occurred:{' '}
-                          </span>
-                          <span className="font-medium text-white">
-                            Day {results.propFirmStats.breachDay.day}
-                          </span>
-                        </div>
-                        <div className="mb-1">
-                          <span className="text-gray-400">
-                            Balance at breach:{' '}
-                          </span>
-                          <span
-                            className={`font-medium ${
-                              results.propFirmStats.breachDay.dailyPnL >= 0
-                                ? 'text-green-600'
-                                : 'text-red-600'
-                            }`}
-                          >
-                            {formatCurrency(results.propFirmStats.breachDay.endBalance)}
-                          </span>
-                        </div>
-                        <div className="text-gray-400 mt-2 mb-1 text-sm">
-                          Allowed Minimum on breach day: {formatCurrency(results.propFirmStats.breachDay.allowedMinimum)}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Average Trade Amount:</span>
+                      <span className={`font-medium ${results.averageTradeAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(results.averageTradeAmount)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Avg Trade (% of initial):</span>
+                      <span className={`font-medium ${results.averageTradePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {results.averageTradePercent.toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Total Return:</span>
+                      <span className={`font-medium ${results.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {results.totalReturn.toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">
-              Equity Curve
-            </h3>
-            <div className="w-full h-64 bg-[#3a3a3a] relative p-2 border border-gray-600 rounded">
-              {results.equity.length > 1 && (
-                <svg
-                  viewBox={`0 0 ${results.equity.length} 100`}
-                  className="w-full h-full"
-                >
-                  {(() => {
-                    const minEquity = Math.min(...results.equity);
-                    const maxEquity = Math.max(...results.equity);
-                    const range = maxEquity - minEquity || 1;
-                    const normalize = (val) =>
-                      100 - ((val - minEquity) / range) * 95;
-
-                    let path = `M 0 ${normalize(results.equity[0])}`;
-                    for (let i = 1; i < results.equity.length; i++) {
-                      path += ` L ${i} ${normalize(results.equity[i])}`;
-                    }
-
-                    // Break-even line based on initial balance
-                    const initialBalanceLine = `M 0 ${normalize(
-                      inputs.accountSize
-                    )} L ${results.equity.length} ${normalize(inputs.accountSize)}`;
-
-                    return (
-                      <>
-                        <path
-                          d={path}
-                          fill="none"
-                          stroke="#4a6cf7"
-                          strokeWidth="0.5"
-                        />
-                        <path
-                          d={initialBalanceLine}
-                          fill="none"
-                          stroke="rgba(0, 255, 227, 0.7)"
-                          strokeWidth="0.6"
-                          strokeDasharray="0.5,0.5"
-                        />
-                        <text
-                          x="5"
-                          y={normalize(inputs.accountSize) - 3}
-                          fontSize="3"
-                          fill="green"
-                        >
-                          Break-even Line
-                        </text>
-                      </>
-                    );
-                  })()}
-                </svg>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">
-              Drawdown Chart
-            </h3>
-            <div className="w-full h-48 bg-[#3a3a3a] relative p-2 border border-gray-600 rounded">
-              {results.drawdowns.length > 0 && (
-                <svg
-                  viewBox={`0 0 ${results.drawdowns.length} 100`}
-                  className="w-full h-full"
-                >
-                  {(() => {
-                    const maxDrawdownVal = Math.max(...results.drawdowns, 5);
-                    const normalize = (val) => (val / maxDrawdownVal) * 95;
-
-                    let path = `M 0 ${normalize(results.drawdowns[0])}`;
-                    for (let i = 1; i < results.drawdowns.length; i++) {
-                      path += ` L ${i} ${normalize(results.drawdowns[i])}`;
-                    }
-
-                    return (
-                      <>
-                        <path
-                          d={path}
-                          fill="none"
-                          stroke="#ff4136"
-                          strokeWidth="0.5"
-                        />
-                      </>
-                    );
-                  })()}
-                </svg>
-              )}
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
     </div>
