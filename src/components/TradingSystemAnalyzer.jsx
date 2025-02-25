@@ -695,9 +695,8 @@ const TradingSystemAnalyzer = () => {
                   const range = maxEquity - minEquity;
                   const normalize = (val) => 100 - ((val - minEquity) / range) * 95;
                   
-                  let path = `M 0 ${normalize(results.equity[0])}`;
                   for (let i = 1; i < results.equity.length; i++) {
-                    path += ` L ${i-1} ${normalize(results.equity[i])}`;
+                    path += ` L ${i} ${normalize(results.equity[i])}`;
                   }
                   
                   // Add a line showing initial balance (break-even line)
