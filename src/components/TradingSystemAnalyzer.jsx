@@ -328,49 +328,49 @@ const TradingSystemAnalyzer = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4 bg-[#1a1a1a] rounded-lg shadow">
-        <div className="bg-[#2a2a2a] p-4 rounded-lg shadow-sm mb-6">
-          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-8 rounded-2xl shadow-xl border border-gray-700 mb-10 max-w-4xl mx-auto">
-            <h2 className="text-4xl font-extrabold text-cyan-400 mb-6 text-center animate-fade-in">
-              Trading System Analyzer
-            </h2>
-  
+        <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-8 rounded-2xl shadow-xl border border-gray-700 mb-10 max-w-4xl mx-auto">
+          <h2 className="text-4xl font-extrabold text-[#00ffe3] mb-6 text-center animate-fade-in">
+            Trading System Analyzer
+          </h2>
+          
           <p className="text-lg text-gray-300 leading-relaxed text-center mb-6">
-            A powerful **simulation tool** designed for traders to analyze their **non-compounding trading strategy**, measure **risk exposure**, and evaluate performance under real-world conditions. Whether you’re an **independent trader** or preparing for a **prop firm challenge**, this tool helps refine your trading approach.
+            A powerful simulation tool designed for traders to analyze their trading strategy, measure risk exposure, and evaluate performance under real-world conditions. Whether you’re an independent trader or preparing for a prop firm challenge, this tool helps refine your trading approach.
           </p>
 
           <div className="bg-gray-800/50 p-6 rounded-xl shadow-md border border-gray-700">
-            <h3 className="text-2xl font-semibold text-cyan-300 mb-4 text-center">
+            <h3 className="text-2xl font-semibold text-[#00ffe3] mb-4 text-center">
               Key Features
             </h3>
             <ul className="space-y-4 text-gray-300">
               <li className="flex items-start">
                 <span className="text-cyan-300 text-xl mr-3">⏳</span>
-                <strong>Performance Simulation:</strong> Input parameters such as **win rate, average win/loss, and number of trades** to generate a simulated trading outcome.
+                <strong>Performance Simulation:</strong> Input parameters such as win rate, average win/loss, and number of trades to generate a simulated trading outcome.
               </li>
               <li className="flex items-start">
                 <span className="text-cyan-300 text-xl mr-3">📊</span>
-                <strong>Risk Metrics & Equity Curve:</strong> View **detailed statistics**, including **drawdowns, risk-reward ratio**, and a **real-time equity curve**.
+                <strong>Risk Metrics & Equity Curve:</strong> View detailed statistics, including drawdowns, risk-reward ratio, and a real-time equity curve.
               </li>
               <li className="flex items-start">
                 <span className="text-cyan-300 text-xl mr-3">🏆</span>
-                <strong>Prop Firm Evaluation:</strong> Customize drawdown limits for **prop firm challenges**, including **fixed, trailing, and trailing until initial balance**.
+                <strong>Prop Firm Evaluation:</strong> Customize drawdown limits for prop firm challenges, including fixed, trailing, and trailing until initial balance.
               </li>
               <li className="flex items-start">
                 <span className="text-cyan-300 text-xl mr-3">📉</span>
-                <strong>Fail Rate Estimation:</strong> Simulate **multiple trading sessions** to determine the **probability of breaching max drawdown limits**.
+                <strong>Fail Rate Estimation:</strong> Simulate multiple trading sessions to determine the probability of breaching max drawdown limits.
               </li>
             </ul>
           </div>
 
           <p className="text-lg text-gray-300 leading-relaxed text-center mt-6">
-            **Optimize your trading strategy** by adjusting key parameters, visualizing risk, and improving your **prop firm success rate**.
+            Optimize your trading strategy by adjusting key parameters, visualizing risk, and improving your prop firm success rate.
           </p>
 
           <p className="text-lg text-gray-300 text-center mt-4">
             Get started below and simulate your trading performance with confidence!
           </p>
-        </div>
+
       </div>
+
       {/* Trading Simulation Form */}
       <h1 className="text-2xl font-bold text-center mb-6 text-white">
         Trading System Analyzer (Non-Compounding)
