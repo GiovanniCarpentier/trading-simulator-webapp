@@ -327,48 +327,63 @@ const TradingSystemAnalyzer = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 bg-[#2a2a2a] rounded-lg shadow">
-        <div className="p-8 rounded-2xl shadow-xl border border-gray-700 mb-10 max-w-4xl mx-auto">
-          <h2 className="text-4xl font-extrabold text-[#00ffe3] mb-6 text-center animate-fade-in">
-            Trading System Analyzer
+    <div className="w-full max-w-4xl mx-auto p-4 bg-[#2a2a2a] rounded-lg shadow py-4">
+      <div className="p-6 md:p-8 rounded-2xl shadow-xl border border-gray-700 mb-10 mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#00ffe3] mb-6 text-center animate-fade-in">
+              Trading System Analyzer
           </h2>
-          
-          <p className="text-lg text-gray-300 leading-relaxed text-center mb-6">
-            A powerful simulation tool designed for traders to analyze their trading strategy, measure risk exposure, and evaluate performance under real-world conditions. Whether you’re an independent trader or preparing for a prop firm challenge, this tool helps refine your trading approach.
+
+          <p className="text-base sm:text-lg text-gray-300 leading-relaxed text-center mb-6">
+              A powerful simulation tool designed for traders to analyze their trading strategy, measure risk exposure, and evaluate performance under real-world conditions. Whether you’re an independent trader or preparing for a prop firm challenge, this tool helps refine your trading approach.
           </p>
 
-          <div className="bg-gray-800/50 p-6 rounded-xl shadow-md border border-gray-700">
-            <h3 className="text-2xl font-semibold text-[#00ffe3] mb-4 text-center">
-              Key Features
-            </h3>
-            <ul className="space-y-4 text-gray-300">
-              <li className="flex items-start">
-                <span className="text-cyan-300 text-xl mr-3">⏳</span>
-                <strong>Performance Simulation:</strong> Input parameters such as win rate, average win/loss, and number of trades to generate a simulated trading outcome.
-              </li>
-              <li className="flex items-start">
-                <span className="text-cyan-300 text-xl mr-3">📊</span>
-                <strong>Risk Metrics & Equity Curve:</strong> View detailed statistics, including drawdowns, risk-reward ratio, and a real-time equity curve.
-              </li>
-              <li className="flex items-start">
-                <span className="text-cyan-300 text-xl mr-3">🏆</span>
-                <strong>Prop Firm Evaluation:</strong> Customize drawdown limits for prop firm challenges, including fixed, trailing, and trailing until initial balance.
-              </li>
-              <li className="flex items-start">
-                <span className="text-cyan-300 text-xl mr-3">📉</span>
-                <strong>Fail Rate Estimation:</strong> Simulate multiple trading sessions to determine the probability of breaching max drawdown limits.
-              </li>
-            </ul>
+          <div className="bg-gray-800/50 p-4 sm:p-6 rounded-xl shadow-md border border-gray-700">
+              <h3 className="text-xl sm:text-2xl font-semibold text-[#00ffe3] mb-4 text-center">
+                  Key Features
+              </h3>
+              <ul className="space-y-4 text-gray-300 text-sm sm:text-base">
+                <li className="flex items-start space-x-3">
+                  <span className="text-cyan-300 text-base sm:text-lg flex-shrink-0">⏳</span>
+                  <div>
+                    <strong className="block text-base sm:text-lg">Performance Simulation:</strong>
+                    <span>Input parameters such as win rate, average win/loss, and number of trades to generate a simulated trading outcome.</span>
+                  </div>
+                </li>
+                
+                <li className="flex items-start space-x-3">
+                  <span className="text-cyan-300 text-base sm:text-lg flex-shrink-0">📊</span>
+                  <div>
+                    <strong className="block text-base sm:text-lg">Risk Metrics & Equity Curve:</strong>
+                    <span>View detailed statistics, including drawdowns, risk-reward ratio, and a real-time equity curve.</span>
+                  </div>
+                </li>
+                
+                <li className="flex items-start space-x-3">
+                  <span className="text-cyan-300 text-base sm:text-lg flex-shrink-0">🏆</span>
+                  <div>
+                    <strong className="block text-base sm:text-lg">Prop Firm Evaluation:</strong>
+                    <span>Customize drawdown limits for prop firm challenges, including fixed, trailing, and trailing until initial balance.</span>
+                  </div>
+                </li>
+                
+                <li className="flex items-start space-x-3">
+                  <span className="text-cyan-300 text-base sm:text-lg flex-shrink-0">📉</span>
+                  <div>
+                    <strong className="block text-base sm:text-lg">Fail Rate Estimation:</strong>
+                    <span>Simulate multiple trading sessions to determine the probability of breaching max drawdown limits.</span>
+                  </div>
+                </li>
+              </ul>
+
           </div>
 
-          <p className="text-lg text-gray-300 leading-relaxed text-center mt-6">
-            Optimize your trading strategy by adjusting key parameters, visualizing risk, and improving your prop firm success rate.
+          <p className="text-base sm:text-lg text-gray-300 leading-relaxed text-center mt-6">
+              Optimize your trading strategy by adjusting key parameters, visualizing risk, and improving your prop firm success rate.
           </p>
 
-          <p className="text-lg text-gray-300 text-center mt-4">
-            Get started below and simulate your trading performance with confidence!
+          <p className="text-base sm:text-lg text-gray-300 text-center mt-4">
+              Get started below and simulate your trading performance with confidence!
           </p>
-
       </div>
 
       {/* Trading Simulation Form */}
