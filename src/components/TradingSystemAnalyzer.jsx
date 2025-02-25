@@ -623,6 +623,100 @@ const TradingSystemAnalyzer = () => {
                         {results.totalReturn.toFixed(2)}%
                       </span>
                     </div>
+                    {results.propFirmStats && (
+                  <>
+                    <div className="pt-2 border-t border-gray-200 mt-2">
+                      <span className="font-medium text-blue-600">
+                        Prop Firm Analysis:
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Max Daily Loss Allowed:</span>
+                      <span className="font-medium text-white">
+                        {results.propFirmStats.maxDailyLoss}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Drawdown Type:</span>
+                      <span className="font-medium text-white">
+                        {results.propFirmStats.drawdownType}
+                      </span>
+                    </div>
+                    {results.propFirmStats.drawdownType === 'fixed' && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Fixed Drawdown Limit:</span>
+                        <span className="font-medium text-white">
+                          {formatCurrency(inputs.fixedDrawdownLimit)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Daily Loss Breaches:</span>
+                      <span className="font-medium text-red-600">
+                        {results.propFirmStats.dailyLossBreaches}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Max Consecutive Loss Days:</span>
+                      <span className="font-medium text-white">
+                        {results.propFirmStats.maxConsecutiveLossDays}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Trading Days:</span>
+                      <span className="font-medium text-white">
+                        {results.propFirmStats.actualDaysCount}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Trades Taken:</span>
+                      <span className="font-medium text-white">
+                        {results.propFirmStats.actualTradeCount} of {inputs.numberOfTrades}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Avg Trades Per Day:</span>
+                      <span className="font-medium text-white">
+                        {results.propFirmStats.avgTradesPerDay.toFixed(1)}
+                        <span className="text-xs text-gray-500 ml-1">
+                          (Target: {results.propFirmStats.tradesPerDayTarget})
+                        </span>
+                      </span>
+                    </div>
+                    {inputs.showBreachDetails && results.propFirmStats.breachDay && (
+                      <div className="mt-4 border-t border-gray-200 pt-2">
+                        <div className="font-medium text-red-600 mb-2">
+                          Drawdown Breach Details:
+                        </div>
+                        <div className="mb-1">
+                          <span className="text-gray-400">
+                            Day when breach occurred:{' '}
+                          </span>
+                          <span className="font-medium text-white">
+                            Day {results.propFirmStats.breachDay.day}
+                          </span>
+                        </div>
+                        <div className="mb-1">
+                          <span className="text-gray-400">
+                            Balance at breach:{' '}
+                          </span>
+                          <span
+                            className={`font-medium ${
+                              results.propFirmStats.breachDay.dailyPnL >= 0
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                            }`}
+                          >
+                            {formatCurrency(results.propFirmStats.breachDay.endBalance)}
+                          </span>
+                        </div>
+                        <div className="text-gray-400 mt-2 mb-1 text-sm">
+                          Allowed Minimum on breach day: {formatCurrency(results.propFirmStats.breachDay.allowedMinimum)}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
                   </div>
                 </div>
               </div>
@@ -682,25 +776,6 @@ const TradingSystemAnalyzer = () => {
                   )}
                 </div>
               </div>
-              {/* Breach Details if available */}
-              {inputs.showBreachDetails && results.propFirmStats && results.propFirmStats.breachDay && (
-                <div className="mt-4 border-t border-gray-200 pt-2">
-                  <div className="font-medium text-red-600 mb-2">Drawdown Breach Details:</div>
-                  <div className="mb-1">
-                    <span className="text-gray-400">Day when breach occurred: </span>
-                    <span className="font-medium text-white">Day {results.propFirmStats.breachDay.day}</span>
-                  </div>
-                  <div className="mb-1">
-                    <span className="text-gray-400">Balance at breach: </span>
-                    <span className={`font-medium ${results.propFirmStats.breachDay.dailyPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(results.propFirmStats.breachDay.endBalance)}
-                    </span>
-                  </div>
-                  <div className="text-gray-400 mt-2 mb-1 text-sm">
-                    Allowed Minimum on breach day: {formatCurrency(results.propFirmStats.breachDay.allowedMinimum)}
-                  </div>
-                </div>
-              )}
             </>
           )}
         </div>
