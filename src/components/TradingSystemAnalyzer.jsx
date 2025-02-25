@@ -288,9 +288,9 @@ const TradingSystemAnalyzer = () => {
       }
       
       // Calculate expectancy
-      const expectedWin = (winRate / 100) * riskRewardRatio;
-      const expectedLoss = (1 - winRate / 100) * 1;
-      const expectancy = expectedWin - expectedLoss;
+      const probWin = winRate / 100;
+      const probLoss = 1 - probWin;
+      const expectancy = (probWin * avgWin) - (probLoss * avgLoss);
       
       // Calculate average trade in dollars and percentage
       const averageTradeAmount = actualTradesTaken > 0 ? (profits - losses) / actualTradesTaken : 0;
