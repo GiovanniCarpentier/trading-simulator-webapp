@@ -1,0 +1,42 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+import TradingSystemAnalyzer from '../components/TradingSystemAnalyzer';
+---
+
+<Layout title="Trading System Analyzer">
+    <div class="min-h-screen bg-gray-50 py-10">
+        <div class="container mx-auto max-w-6xl px-4">
+            <header class="text-center mb-10">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">
+                    Trading System Analyzer (Beta)
+                </h1>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Simulate and analyze your trading strategy with advanced Monte Carlo simulation
+                </p>
+            </header>
+
+            <main>
+                <TradingSystemAnalyzer client:load />
+            </main>
+
+            <footer class="mt-10 text-center text-gray-500">
+                <p>
+                    © {new Date().getFullYear()} Trading System Analyzer. 
+                    For educational purposes only.
+                </p>
+                <p class="text-sm mt-2">
+                    Disclaimer: This tool is a simulation and should not be considered 
+                    financial advice. Always consult with a financial professional.
+                </p>
+            </footer>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    /* Optional: Add any global styles specific to this page */
+    body {
+        background-color: #f7fafc;
+    }
+</style>
