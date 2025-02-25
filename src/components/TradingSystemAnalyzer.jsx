@@ -327,8 +327,8 @@ const TradingSystemAnalyzer = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 bg-[#1a1a1a] rounded-lg shadow">
-        <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-8 rounded-2xl shadow-xl border border-gray-700 mb-10 max-w-4xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto p-4 bg-[#2a2a2a] rounded-lg shadow">
+        <div className="p-8 rounded-2xl shadow-xl border border-gray-700 mb-10 max-w-4xl mx-auto">
           <h2 className="text-4xl font-extrabold text-[#00ffe3] mb-6 text-center animate-fade-in">
             Trading System Analyzer
           </h2>
