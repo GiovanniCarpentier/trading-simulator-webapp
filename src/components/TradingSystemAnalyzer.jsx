@@ -11,7 +11,7 @@ const TradingSystemAnalyzer = () => {
     }).format(value);
   };
 
-  // State for input parameters. Note the new simulationRuns field.
+  // State for inputs. Note the new simulationRuns field.
   const [inputs, setInputs] = useState({
     avgWin: 200,
     avgLoss: 100,
@@ -28,14 +28,14 @@ const TradingSystemAnalyzer = () => {
     // Drawdown type selector: 'trailing', 'trailingUntilInitial', or 'fixed'
     drawdownType: 'trailing',
     fixedDrawdownLimit: 1000, // in dollars; used if drawdownType === 'fixed'
-    // New: number of simulation runs for fail rate estimation
+    // New: number of simulation runs for fail rate estimation.
     simulationRuns: 1,
   });
 
   const [results, setResults] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Generic handler for input changes.
+  // Handle input changes.
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === 'checkbox') {
@@ -51,7 +51,7 @@ const TradingSystemAnalyzer = () => {
   const runSimulation = () => {
     setIsLoading(true);
 
-    // Offload simulation calculations using setTimeout.
+    // Offload simulation calculations.
     setTimeout(() => {
       const {
         avgWin,
@@ -68,13 +68,13 @@ const TradingSystemAnalyzer = () => {
         simulationRuns,
       } = inputs;
 
-      // Helper function to run a single simulation.
+      // Helper function to run one simulation.
       const simulateOnce = () => {
-        // Calculate basic parameters.
+        // Basic parameters.
         const riskRewardRatio = avgWin / avgLoss;
         const riskPercentage = (avgLoss / accountSize) * 100;
         const initialBalance = accountSize;
-        // Non-compounding: fixed risk amount equals avgLoss.
+        // Non-compounding fixed risk equals avgLoss.
         const fixedRiskAmount = initialBalance * (riskPercentage / 100);
 
         let balance = initialBalance;
@@ -89,7 +89,7 @@ const TradingSystemAnalyzer = () => {
         let losses = 0;
         let breakEvenTrade = -1;
 
-        // Variables for tracking prop firm rules.
+        // Variables for prop firm rules.
         let dayCount = 1;
         let tradeInDay = 0;
         let dayStartBalance = initialBalance;
@@ -100,7 +100,7 @@ const TradingSystemAnalyzer = () => {
         let maxConsecutiveLossDays = 0;
         let actualTradesTaken = 0;
 
-        // For trailingUntilInitial mode: determine fixed loss in dollars and set the initial allowed minimum.
+        // For trailingUntilInitial, calculate fixed loss in dollars and set initial allowed minimum.
         const fixedLoss = initialBalance * (maxDrawdown / 100);
         let persistentAllowedMinimum =
           isPropFirm && drawdownType === 'trailingUntilInitial'
@@ -121,14 +121,14 @@ const TradingSystemAnalyzer = () => {
           allowedMinimum: null,
         };
 
-        // Run through the trades.
+        // Run simulation over trades.
         for (let i = 0; i < numberOfTrades; i++) {
           if (isPropFirm && isAccountBlown) {
             continue;
           }
           actualTradesTaken++;
 
-          // Determine trade outcome.
+          // Determine outcome.
           const tradeNumber = actualTradesTaken;
           const isWin = Math.random() * 100 < winRate;
           let tradeResult = 0;
@@ -155,7 +155,7 @@ const TradingSystemAnalyzer = () => {
           });
           equity.push(balance);
 
-          // Detect break-even trade.
+          // Break-even trade detection.
           if (
             breakEvenTrade === -1 &&
             balance >= initialBalance &&
@@ -164,7 +164,7 @@ const TradingSystemAnalyzer = () => {
             breakEvenTrade = i;
           }
 
-          // Update peak balance and current drawdown.
+          // Update peak and drawdown.
           if (balance > peakBalance) {
             peakBalance = balance;
             currentDrawdown = 0;
@@ -176,14 +176,12 @@ const TradingSystemAnalyzer = () => {
           }
           drawdowns.push(currentDrawdown);
 
-          // Check prop firm drawdown rules.
+          // Prop firm drawdown check.
           if (isPropFirm) {
             let allowedMinimum;
             if (drawdownType === 'fixed') {
-              // Fixed mode: allowed balance must not drop below initial minus fixedDrawdownLimit.
               allowedMinimum = initialBalance - fixedDrawdownLimit;
             } else if (drawdownType === 'trailingUntilInitial') {
-              // Update the persistent allowed minimum.
               let potentialAllowed = peakBalance - fixedLoss;
               if (potentialAllowed > initialBalance) {
                 potentialAllowed = initialBalance;
@@ -191,24 +189,21 @@ const TradingSystemAnalyzer = () => {
               persistentAllowedMinimum = Math.max(persistentAllowedMinimum, potentialAllowed);
               allowedMinimum = persistentAllowedMinimum;
             } else {
-              // Trailing: always recalc allowed minimum based on current peak.
               allowedMinimum = peakBalance * (1 - maxDrawdown / 100);
             }
             currentDayLog.allowedMinimum = allowedMinimum;
-
-            // If balance falls below the allowed minimum, the account is considered blown.
             if (balance < allowedMinimum) {
               isAccountBlown = true;
               currentDayLog.maxDrawdownBreach = true;
             }
           }
 
-          // Increment trades per day.
+          // Increment trades in current day.
           if (isPropFirm && tradesPerDay > 0) {
             tradeInDay++;
           }
 
-          // Daily loss check: if losses exceed maxDailyLoss for the day, end trading for that day.
+          // Daily loss check.
           if (isPropFirm && dailyPnL < 0) {
             const dailyLossPercent = (Math.abs(dailyPnL) / dayStartBalance) * 100;
             if (dailyLossPercent > maxDailyLoss) {
@@ -222,7 +217,7 @@ const TradingSystemAnalyzer = () => {
             }
           }
 
-          // End-of-day logic: reset daily counters when tradesPerDay reached.
+          // End-of-day logic.
           if (isPropFirm && tradesPerDay > 0 && tradeInDay >= tradesPerDay) {
             if (dailyPnL >= 0) {
               consecutiveLossDays = 0;
@@ -258,7 +253,7 @@ const TradingSystemAnalyzer = () => {
           dailyLogs.push({ ...currentDayLog });
         }
 
-        // Compute additional performance metrics.
+        // Compute additional metrics.
         const probWin = winRate / 100;
         const probLoss = 1 - probWin;
         const expectancy = probWin * avgWin - probLoss * avgLoss;
@@ -303,6 +298,7 @@ const TradingSystemAnalyzer = () => {
           actualTradesTaken,
           isAccountBlown,
         };
+
         return simulationResult;
       };
 
@@ -322,7 +318,7 @@ const TradingSystemAnalyzer = () => {
           failRate,
         });
       } else {
-        // Otherwise, run a single simulation and show detailed results.
+        // Otherwise, run a single simulation.
         const result = simulateOnce();
         setResults(result);
       }
@@ -487,7 +483,7 @@ const TradingSystemAnalyzer = () => {
                   className="w-full p-2 border border-gray-600 rounded bg-[#3a3a3a] text-white"
                 />
               </div>
-              {/* New input: Simulation Runs for Fail Rate Estimation */}
+              {/* New: Simulation Runs for Fail Rate Estimation */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">
                   Simulation Runs for Fail Rate Estimation (enter a value greater than 1 to estimate)
@@ -588,15 +584,11 @@ const TradingSystemAnalyzer = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Wins / Losses:</span>
-                      <span className="font-medium text-white">
-                        {results.winCount} / {results.lossCount}
-                      </span>
+                      <span className="font-medium text-white">{results.winCount} / {results.lossCount}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Trades Taken:</span>
-                      <span className="font-medium text-white">
-                        {results.actualTradesTaken} of {inputs.numberOfTrades}
-                      </span>
+                      <span className="font-medium text-white">{results.actualTradesTaken} of {inputs.numberOfTrades}</span>
                     </div>
                   </div>
                 </div>
@@ -605,9 +597,7 @@ const TradingSystemAnalyzer = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Max Drawdown (Peak-to-Trough):</span>
-                      <span className="font-medium text-red-600">
-                        {results.maxDrawdown.toFixed(2)}%
-                      </span>
+                      <span className="font-medium text-red-600">{results.maxDrawdown.toFixed(2)}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">System Expectancy:</span>
@@ -636,6 +626,81 @@ const TradingSystemAnalyzer = () => {
                   </div>
                 </div>
               </div>
+              {/* Equity Curve */}
+              <div className="mb-6">
+                <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">Equity Curve</h3>
+                <div className="w-full h-64 bg-[#3a3a3a] relative p-2 border border-gray-600 rounded">
+                  {results.equity.length > 1 && (
+                    <svg viewBox={`0 0 ${results.equity.length} 100`} className="w-full h-full">
+                      {(() => {
+                        const minEquity = Math.min(...results.equity);
+                        const maxEquity = Math.max(...results.equity);
+                        const range = maxEquity - minEquity || 1;
+                        const normalize = (val) => 100 - ((val - minEquity) / range) * 95;
+                        let path = `M 0 ${normalize(results.equity[0])}`;
+                        for (let i = 1; i < results.equity.length; i++) {
+                          path += ` L ${i} ${normalize(results.equity[i])}`;
+                        }
+                        // Break-even line.
+                        const initialBalanceLine = `M 0 ${normalize(inputs.accountSize)} L ${results.equity.length} ${normalize(inputs.accountSize)}`;
+                        return (
+                          <>
+                            <path d={path} fill="none" stroke="#4a6cf7" strokeWidth="0.5" />
+                            <path
+                              d={initialBalanceLine}
+                              fill="none"
+                              stroke="rgba(0, 255, 227, 0.7)"
+                              strokeWidth="0.6"
+                              strokeDasharray="0.5,0.5"
+                            />
+                            <text x="5" y={normalize(inputs.accountSize) - 3} fontSize="3" fill="green">
+                              Break-even Line
+                            </text>
+                          </>
+                        );
+                      })()}
+                    </svg>
+                  )}
+                </div>
+              </div>
+              {/* Drawdown Chart */}
+              <div>
+                <h3 className="font-medium text-lg mb-2 text-[#00ffe3]">Drawdown Chart</h3>
+                <div className="w-full h-48 bg-[#3a3a3a] relative p-2 border border-gray-600 rounded">
+                  {results.drawdowns.length > 0 && (
+                    <svg viewBox={`0 0 ${results.drawdowns.length} 100`} className="w-full h-full">
+                      {(() => {
+                        const maxDrawdownVal = Math.max(...results.drawdowns, 5);
+                        const normalize = (val) => (val / maxDrawdownVal) * 95;
+                        let path = `M 0 ${normalize(results.drawdowns[0])}`;
+                        for (let i = 1; i < results.drawdowns.length; i++) {
+                          path += ` L ${i} ${normalize(results.drawdowns[i])}`;
+                        }
+                        return <path d={path} fill="none" stroke="#ff4136" strokeWidth="0.5" />;
+                      })()}
+                    </svg>
+                  )}
+                </div>
+              </div>
+              {/* Breach Details if available */}
+              {inputs.showBreachDetails && results.propFirmStats && results.propFirmStats.breachDay && (
+                <div className="mt-4 border-t border-gray-200 pt-2">
+                  <div className="font-medium text-red-600 mb-2">Drawdown Breach Details:</div>
+                  <div className="mb-1">
+                    <span className="text-gray-400">Day when breach occurred: </span>
+                    <span className="font-medium text-white">Day {results.propFirmStats.breachDay.day}</span>
+                  </div>
+                  <div className="mb-1">
+                    <span className="text-gray-400">Balance at breach: </span>
+                    <span className={`font-medium ${results.propFirmStats.breachDay.dailyPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(results.propFirmStats.breachDay.endBalance)}
+                    </span>
+                  </div>
+                  <div className="text-gray-400 mt-2 mb-1 text-sm">
+                    Allowed Minimum on breach day: {formatCurrency(results.propFirmStats.breachDay.allowedMinimum)}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
